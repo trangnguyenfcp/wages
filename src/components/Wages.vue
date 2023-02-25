@@ -42,7 +42,7 @@
             <v-label>
             Gạt hoàn tiền max  
             </v-label>
-            <v-text-field placeholder="Có hoặc không" type="number" v-model="discount.refundDiscount" :rules="[rules.refundMax]"></v-text-field>
+            <v-text-field placeholder="Có hoặc không" type="number" v-model="discount.refundDiscount" :error-messages="rules.refundMax"></v-text-field>
           </v-col>
           <v-col  class="col-4">
             <v-label>
@@ -107,7 +107,7 @@ const creds = require('@/client_secret.json');
     data: () => ({
       rules : {
         required: "Bắt buộc nhập",
-        refundMax: v => ( v && v <= 100 ) || "Max should not be above £50,000",
+        refundMax: "<= 100",
       },
       message: '',
       provisionalWagesRows: {},
@@ -157,6 +157,10 @@ const creds = require('@/client_secret.json');
         }
         if (!priceLevel) {
           this.message = "Tổng đơn phải > 500 và < 5200";
+          return;
+        }
+        if (this.discount.refundDiscount > 100) {
+          this.message = "Gạt hoàn tiền <= 100";
           return;
         }
         for (let i = 0; i < this.provisionalWagesRows.length; i++) {
