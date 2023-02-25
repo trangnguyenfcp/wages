@@ -163,6 +163,10 @@ const creds = require('@/client_secret.json');
           this.message = "Gạt hoàn tiền <= 100";
           return;
         }
+        if (this.discount.provisionalDiscount < 100) {
+          this.message = "Mã sàn + mã bank phải >= 100";
+          return;
+        }
         for (let i = 0; i < this.provisionalWagesRows.length; i++) {
           if ((this.provisionalWagesRows[i].priceLevel == priceLevel) && (this.provisionalWagesRows[i].discount ==  this.discount.discountCal)) {
             this.provisionalWages = this.provisionalWagesRows[i].provisionalWages;
