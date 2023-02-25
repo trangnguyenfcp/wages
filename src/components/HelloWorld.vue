@@ -153,10 +153,7 @@ import axios from "axios";
       ],
     }),
     mounted() {
-        axios.get(this.api.baseUrl, {
-  headers: {
-    'Access-Control-Allow-Origin': '*' // Could work and fix the previous problem, but not in all APIs
-  }}).then((res) => {
+        axios.get(this.api.baseUrl).then((res) => {
                 console.log(res)
             });
     },
