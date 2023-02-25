@@ -92,10 +92,15 @@
 </template>
 
 <script>
+import axios from "axios";
+
   export default {
     name: 'HelloWorld',
-
+  
     data: () => ({
+      api: {
+          baseUrl: 'https://script.google.com/macros/s/AKfycbzwxH6FMu2DY5fPASkeOCt_tWbvwJSytrrbiPZkQBj1sbixDG0m2ZstYe2WU5q4esxE/exec',
+      },
       ecosystem: [
         {
           text: 'vuetify-loader',
@@ -147,5 +152,13 @@
         },
       ],
     }),
+    mounted() {
+        axios.get(this.api.baseUrl, {
+  headers: {
+    'Access-Control-Allow-Origin': '*' // Could work and fix the previous problem, but not in all APIs
+  }}).then((res) => {
+                console.log(res)
+            });
+    },
   }
 </script>
