@@ -40,7 +40,7 @@
           </v-col>
           <v-col  class="col-4">
             <v-label>
-            Gạt hoàn tiền max  
+            Gạt hoàn tiền  
             </v-label>
             <v-text-field placeholder="Có hoặc không" type="number" v-model="discount.refundDiscount" :error-messages="rules.refundMax"></v-text-field>
           </v-col>
@@ -112,6 +112,7 @@ const creds = require('@/client_secret.json');
       message: '',
       provisionalWagesRows: {},
       priceLevelRows: {},
+      extraWagesRows: {},
       price: {
         mainProduct: '',
         byProduct1: '',
@@ -129,9 +130,11 @@ const creds = require('@/client_secret.json');
         discountCal: '',
       },
       freeshipDiscounts: [
+        {value: 0, text: "0"},
         {value: 15, text: "15"},
         {value: 20, text: "20"}
       ],
+      extraWages: 0,
       provisionalWages: 0,
       wages: '',
 
@@ -156,7 +159,7 @@ const creds = require('@/client_secret.json');
           }
         }
         if (!priceLevel) {
-          this.message = "Tổng đơn phải > 500 và < 5200";
+          this.message = "Tổng đơn < 500, > 5200 liên hệ tele Ken";
           return;
         }
         if (this.discount.refundDiscount > 100) {
@@ -164,12 +167,17 @@ const creds = require('@/client_secret.json');
           return;
         }
         if (this.discount.provisionalDiscount < 100) {
-          this.message = "Mã sàn + mã bank phải >= 100";
+          this.message = "Mã sàn + mã bank < 100 liên hệ tele Ken";
           return;
         }
         for (let i = 0; i < this.provisionalWagesRows.length; i++) {
           if ((this.provisionalWagesRows[i].priceLevel == priceLevel) && (this.provisionalWagesRows[i].discount ==  this.discount.discountCal)) {
             this.provisionalWages = this.provisionalWagesRows[i].provisionalWages;
+          }
+        }
+        for (let i = 0; i < this.extraWagesRows.length; i++) {
+          if (this.extraWagesRows[i].priceLevel == priceLevel) {
+            this.extraWages = this.extraWagesRows[i].extraWages;
           }
         }
         
@@ -194,7 +202,8 @@ const creds = require('@/client_secret.json');
         const refundDiscount = this.discount.refundDiscount ? parseInt(this.discount.refundDiscount) : 0;
         const fee = (this.price.byProduct1 > 200 || this.price.byProduct2 > 200) ? 20 : 0;
         const remainWages = this.discount.provisionalDiscount - this.discount.discountCal;
-        this.wages = provisionalWages + freeshipDiscount + refundDiscount + cumulative - fee + remainWages;
+        const extraWages = parseInt(this.extraWages);
+        this.wages = provisionalWages + freeshipDiscount + refundDiscount + cumulative - fee + remainWages + extraWages;
       },
 			async accessSpreadSheet() {
 				const doc = new GoogleSpreadsheet('106OJmbNkC6Fp-ZOD5dMzXvz180Nr_jzcM87l235utfc');
@@ -202,14 +211,19 @@ const creds = require('@/client_secret.json');
 				await doc.loadInfo(); 
 				const sprovisionalWagesSheet = doc.sheetsByIndex[1];
         const priceLevelSheet = doc.sheetsByIndex[2];
-				const  provisionalWagesRows = await sprovisionalWagesSheet.getRows({
+        const extraWagesSheet = doc.sheetsByIndex[3];
+				const provisionalWagesRows = await sprovisionalWagesSheet.getRows({
+					offset: 0
+				});
+        const priceLevelRows = await priceLevelSheet.getRows({
+					offset: 0
+				});
+        const extraWagesRows = await extraWagesSheet.getRows({
 					offset: 0
 				});
         this.provisionalWagesRows = provisionalWagesRows;
-        const  priceLevelRows = await priceLevelSheet.getRows({
-					offset: 0
-				});
         this.priceLevelRows = priceLevelRows;
+        this.extraWagesRows = extraWagesRows;
         
 			}
 		},
