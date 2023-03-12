@@ -56,6 +56,34 @@
             </v-label>
             <v-select placeholder="Có hoặc không" :items="freeshipDiscounts" v-model="discount.freeshipDiscount"></v-select>
           </v-col>
+          <v-col  class="col-4">
+            <v-label>
+            Ngày  
+            </v-label>
+            <v-menu
+              ref="menu"
+              v-model="menu"
+              :close-on-content-click="false"
+              :return-value.sync="date"
+              transition="scale-transition"
+              offset-y
+              min-width="290px"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-text-field
+                  v-model="date"
+                  readonly
+                  v-bind="attrs"
+                  v-on="on"
+                ></v-text-field>
+              </template>
+              <v-date-picker v-model="date" no-title scrollable>
+                <v-spacer></v-spacer>
+                <v-btn text color="primary" @click="menu = false">Cancel</v-btn>
+                <v-btn text color="primary" @click="$refs.menu.save(date)">OK</v-btn>
+              </v-date-picker>
+            </v-menu>
+          </v-col>
           <!-- <v-col  class="col-6">
             <v-label>
               Tổng đơn:
@@ -109,10 +137,10 @@ const creds = require('@/client_secret.json');
         required: "Bắt buộc nhập",
         refundMax: "<= 100",
       },
-      message: '',
       provisionalWagesRows: {},
       priceLevelRows: {},
       extraWagesRows: {},
+      message: '',
       price: {
         mainProduct: '',
         byProduct1: '',
@@ -137,17 +165,22 @@ const creds = require('@/client_secret.json');
       extraWages: 0,
       provisionalWages: 0,
       wages: '',
-
+      date: new Date().toISOString().substr(0, 10),
+      menu: false,
 
     }),
     methods:{
-      calculateProvisionalWages() {
+      clearData() {
         this.message = "";
-        this.wages = "";
+        this.extraWages = 0;
+        this.provisionalWages= 0;
+        this.wages = '';
+      },
+      calculateProvisionalWages() {
+        this.clearData();
         const lzdDiscount = this.discount.lzdDiscount > 0 ? parseInt(this.discount.lzdDiscount) : 0;
         const bankDiscount = this.discount.bankDiscount > 0 ? parseInt(this.discount.bankDiscount) : 0;
         this.discount.provisionalDiscount = lzdDiscount + bankDiscount;
-        this.discount.discountCal = this.discount.provisionalDiscount - (this.discount.provisionalDiscount % 50);
         this.calculateTotalPurchasePrice();
         let priceLevel = '';
         for (let i =0; i < this.priceLevelRows.length; i++){
@@ -159,29 +192,44 @@ const creds = require('@/client_secret.json');
           }
         }
         if (!priceLevel) {
-          this.message = "Tổng đơn < 500, > 5200 liên hệ tele Ken";
+          this.message = "Tổng đơn < 500, > 5900 liên hệ tele Ken";
           return;
         }
         if (this.discount.refundDiscount > 100) {
           this.message = "Gạt hoàn tiền <= 100";
           return;
         }
-        if (this.discount.provisionalDiscount < 100) {
-          this.message = "Mã sàn + mã bank < 100 liên hệ tele Ken";
+        if (this.discount.provisionalDiscount < 100 || this.discount.provisionalDiscount > 1500) {
+          this.message = "Mã sàn + mã bank < 100, > 1500 liên hệ tele Ken";
           return;
+        }
+        for (let i =0; i < this.provisionalWagesRows.length - 1; i++){
+          if (this.provisionalWagesRows[i].priceLevel === priceLevel){
+            if (this.discount.provisionalDiscount >= this.provisionalWagesRows[i].discount && this.discount.provisionalDiscount < this.provisionalWagesRows[i + 1].discount) {
+              this.discount.discountCal = this.provisionalWagesRows[i].discount;
+            }
+          }
         }
         for (let i = 0; i < this.provisionalWagesRows.length; i++) {
           if ((this.provisionalWagesRows[i].priceLevel == priceLevel) && (this.provisionalWagesRows[i].discount ==  this.discount.discountCal)) {
             this.provisionalWages = this.provisionalWagesRows[i].provisionalWages;
           }
         }
+
         for (let i = 0; i < this.extraWagesRows.length; i++) {
-          if (this.extraWagesRows[i].priceLevel == priceLevel) {
+          const dateFrom = new Date(this.extraWagesRows[i].dateFrom);
+          const dateTo = new Date(this.extraWagesRows[i].dateTo);
+          const dateChosen = new Date(this.date);
+          if (dateChosen >= dateFrom && dateChosen <= dateTo && this.extraWagesRows[i].priceLevel == priceLevel) {
             this.extraWages = this.extraWagesRows[i].extraWages;
           }
         }
-        
-        
+        if (this.extraWages) return;
+        for (let i = 0; i < this.extraWagesRows.length; i++) {
+          if (!this.extraWagesRows[i].dateFrom && !this.extraWagesRows[i].dateTo && this.extraWagesRows[i].priceLevel == priceLevel) {
+            this.extraWages = this.extraWagesRows[i].extraWages;
+          }
+        }
       },
       calculateTotalPurchasePrice(){
         const mainProduct = this.price.mainProduct > 0 ? parseInt(this.price.mainProduct) : 0;
@@ -223,8 +271,7 @@ const creds = require('@/client_secret.json');
 				});
         this.provisionalWagesRows = provisionalWagesRows;
         this.priceLevelRows = priceLevelRows;
-        this.extraWagesRows = extraWagesRows;
-        
+        this.extraWagesRows = extraWagesRows;        
 			}
 		},
     created() {
