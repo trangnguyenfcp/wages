@@ -58,7 +58,7 @@
           </v-col>
           <v-col  class="col-4">
             <v-label>
-            Ngày  
+            Ngày đặt đơn
             </v-label>
             <v-menu
               ref="menu"
