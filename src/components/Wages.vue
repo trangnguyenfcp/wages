@@ -102,7 +102,7 @@
         </v-row>
       </v-form>
     </v-row>
-    <v-row>
+    <v-row class="ml-3 mr-3">
       <v-col cols="12">
         <v-row>
           <v-col>
