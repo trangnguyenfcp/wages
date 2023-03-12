@@ -2,12 +2,12 @@
   <v-container>
     <v-row class="text-center">
       <v-col cols="12">
-        <span>Tính công</span>
+        <b>Tính công</b>
       </v-col>
     </v-row>
     <v-row>
       <v-form>
-        <v-row>
+        <v-row class="ma-5">
           <v-col  class="col-4 col-lg-4 col-md-4 col-sm-4">
             <v-label>
               Sản phẩm chính
